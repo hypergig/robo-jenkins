@@ -10,7 +10,7 @@ services:
     #   # to override defaults
     #   - "GIT_COMMITTER_NAME="
     #   - "GIT_COMMITTER_EMAIL="
-    #   - "JENKINS_EXES="
+    #   - "JENKINS_EXECUTERS="
     #   - "JENKINS_URL="
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"

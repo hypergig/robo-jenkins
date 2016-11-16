@@ -1,6 +1,4 @@
 import jenkins.model.*
-import java.nio.file.Files
-
 
 def env = System.getenv()
 String jenkins_home = "/usr/share/jenkins"
@@ -36,7 +34,7 @@ println "--> setting jenkins url to $url... done"
 
 
 // fixing master executers
-int exes =  env.containsKey('JENKINS_EXES') ? env['JENKINS_EXES'].toInteger() : 25
+int exes =  env.containsKey('JENKINS_EXECUTERS') ? env['JENKINS_EXECUTERS'].toInteger() : 25
 println "--> setting number of executors on master to $exes"
 Jenkins.instance.setNumExecutors(exes)
 println "--> setting number of executors on master to $exes... done"
