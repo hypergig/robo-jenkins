@@ -10,6 +10,9 @@
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>
+    <hudson.triggers.TimerTrigger>
+      <spec>H/15 * * * *</spec>
+    </hudson.triggers.TimerTrigger>
     <org.jvnet.hudson.plugins.triggers.startup.HudsonStartupTrigger plugin="startup-trigger-plugin@2.7">
       <spec></spec>
       <quietPeriod>0</quietPeriod>
@@ -18,7 +21,10 @@
   </triggers>
   <concurrentBuild>false</concurrentBuild>
   <builders>
-    <javaposse.jobdsl.plugin.ExecuteDslScripts plugin="job-dsl@1.52">
+    <hudson.tasks.Shell>
+      <command>./gen_repo_list.sh</command>
+    </hudson.tasks.Shell>
+    <javaposse.jobdsl.plugin.ExecuteDslScripts plugin="job-dsl@1.53">
       <targets>seed.groovy</targets>
       <usingScriptText>false</usingScriptText>
       <ignoreExisting>false</ignoreExisting>

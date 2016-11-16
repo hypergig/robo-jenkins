@@ -1,16 +1,16 @@
 import jenkins.model.*
 
 def env = System.getenv()
-String jenkins_home = "/usr/share/jenkins"
+String jenkins_config_home = env['JENKINS_CONFIG_HOME'].toString()
 
 
 // execute config scripts
 println "--> executing config scripts"
-def process = "$jenkins_home/config.sh".execute()
+def process = "$jenkins_config_home/config.sh".execute()
 process.waitForOrKill(10000)
 
 def stdout = new StringBuilder(), stderr = new StringBuilder()
-process.consumeProcessOutput(stdout, stderr)
+process.waitForProcessOutput(stdout, stderr)
 int rc = process.exitValue()
 
 println "standard out:\n$stdout"
@@ -43,7 +43,7 @@ println "--> setting number of executors on master to $exes... done"
 // create seed job
 println '--> bootstrapping seed job'
 def jobName = "seed"
-String configXml = new File("$jenkins_home/seed/seed.xml").text
+String configXml = new File("$jenkins_config_home/seed/seed.xml").text
 def xmlStream = new ByteArrayInputStream( configXml.getBytes() )
 Jenkins.instance.createProjectFromXML(jobName, xmlStream)
 println '--> bootstrapping seed job... done'

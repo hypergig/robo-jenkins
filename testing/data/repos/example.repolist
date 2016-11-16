@@ -1,0 +1,4 @@
+# a few repos to test against
+https://github.com/nginxinc/docker-nginx
+https://github.com/docker-library/golang
+https://github.com/docker-library/tomcat
