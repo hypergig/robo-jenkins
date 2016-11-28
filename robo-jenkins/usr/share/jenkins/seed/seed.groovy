@@ -1,23 +1,30 @@
 // the seed job dsl script
 
+// read and cache all job templates
+println 'Caching job templates'
+def job_template_cache = [:]
+new File("${WORKSPACE}/job_templates").eachFileMatch(~/.*\.groovy$/) {
+    def template_path = it.toString()
+    def template_name = template_path.split('/')[-1].split('\\.')[0]
+    println "Adding job template to cache: $template_name"
+    job_template_cache.put(template_name,
+        readFileFromWorkspace(template_path))
+}
 
-File file = new File("${WORKSPACE}/repo_list")
-file.readLines().each { repo ->
+// process each repo
+readFileFromWorkspace("repo_list").eachLine {
+    repo = it
     println "Processing repository: $repo"
-    def (org, name) = repo.split('/')[-2,-1]
-    String parent_folder = "$org-$name"
+    def parent_folder = repo.split('/')[-2,-1].join('.')
+    folder(parent_folder) { description("Build jobs for $repo") }
 
-    folder(parent_folder) {
-        //displayName('JOB!')
-        description("Build jobs for $repo")
-    }
-
+    // todo - use github api
     println "fetching branches"
     def process = "git ls-remote -h $repo".execute()
     process.waitForOrKill(5000)
     
-    def stdout = new StringBuilder(), stderr = new StringBuilder()
-    process.waitForProcessOutput(stdout, stderr)
+    def branches = new StringBuilder(), stderr = new StringBuilder()
+    process.waitForProcessOutput(branches, stderr)
     
     int rc = process.exitValue()
     if (rc) {
@@ -25,35 +32,23 @@ file.readLines().each { repo ->
       return false
     }
 
-    stdout.eachLine { line ->
-        def branch = line.split('/')[-1]
+    // process each branch in each repo
+    branches.eachLine {
+        branch = it.split('/')[-1]
         println "Processing branch: $branch"
 
-        println "Creating job: $parent_folder/$branch"
-        job("$parent_folder/$branch") {
-            scm {
-                git(repo, branch)
-            }
-            steps {
-                // todo - modularize and template build steps 
-                shell("""
-                        bash -c '
-                            set -e
-                            echo \"---| environment variables |---\"
-                            env | sort
-                            contexts=\"\$(find . -type f -name Dockerfile -exec dirname {} \\;)\"
-                            echo \"---| docker contexts |---\"
-                            echo \"\$contexts\"
-                            while read context
-                              do
-                                echo \"---| building docker context \$context |---\"
-                                docker build \"\$context\" && {
-                                    echo \"---| successfully built context \$context |---\"; } || {
-                                    echo \"---| failed to build context \$context |---\"; }
-                            done <<< \"\$contexts\"
-                        '
-                    """)
-            }
-        }
+        job_name = "$parent_folder/$branch"
+        println = "Processing job: $job_name"
+
+        // coming soon - more job templates and target override mechanic
+        def target_job_template = "${ROBO_JENKINS_DEFAULT_JOB}"
+        println "Target job template: $target_job_template"
+
+        // create build job from template
+        job_template_code = job_template_cache[target_job_template]
+        def wrapper = """
+            metaClass.'static'.println = { Object o -> x.println o }
+            x.with { $job_template_code }"""
+        Eval.x(this, wrapper)
     }
 }

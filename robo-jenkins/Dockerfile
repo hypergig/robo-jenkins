@@ -6,7 +6,8 @@ ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false" \
     GIT_COMMITTER_NAME="robo-jenkins" \
     GIT_COMMITTER_EMAIL="robo-jenkins@robo-jenkins.foo" \
     JENKINS_CONFIG_HOME="/usr/share/jenkins" \
-    JENKINS_REPO_REGISTRY="/usr/share/jenkins/repo_registry"
+    JENKINS_REPO_REGISTRY="/usr/share/jenkins/repo_registry" \
+    ROBO_JENKINS_DEFAULT_JOB="basic-docker"
 
 # packages and sudoers
 USER root

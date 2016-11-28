@@ -10,20 +10,28 @@ Robo-jenknins is underdevelopment and is considered only a POC as of now
 * Working use of local `docker.sock`
 * Working config.d framework for easy startup bashing
 * Basic repo registry mechanic
-* Build all `Dockerfiles`, in all branches, in all repos, in the repo registry
+* Basic automation that creates one build job for every branch in every repo in the repo registry
+* Working scaffolding for supporting different and pluggable job templates
+* Job template that builds all `Dockerfiles`
 
 ### Repo Registry
 The repo registry is an abstract concept, in it's simplest form it is just a list of github repositories you want rebo-jenkins to consider for build jobs. Support for non-github repos such as local repos are coming soon.
 
 Currently it is just a directory located at `JENKINS_REPO_REGISTRY`, defaulted to `/usr/share/jenkins/repo_registry` which is sniffed out by the seed job.  Just drop text files into this directory containing a list of github repos (urls), one per line, you would like robo-jenkins to consider for ingestion.   A subprocess aggregates all the files in this directory recursively, does some sanitation (removes `#comments` and extraneous white spaces), dedups, and creates a "master list" of repos for the seed job to consume and work off of. The contents in the `JENKINS_REPO_REGISTRY` directory can be modified at anytime, the next run of the seed job will do the right thing (mostly).
 
-#### Issues
+### Job Template
+Build jobs can be created and used as templates. They should be written in accordance with the Jenkins [`job-dsl-plugin`](https://github.com/jenkinsci/job-dsl-plugin/wiki) and dropped into the `/usr/share/jenkins/seed/job_templates/` directory. The code will be evaluated _almost_ as if it was part of the seed job. All methods of the jobs dsl [api](https://jenkinsci.github.io/job-dsl-plugin) should work barring any dsl specific to a particular Jenkins plugin that has not been installed. All templates in this directory will be considered when the seed job runs.
+
+## Issues
 * No cleanup of non used jobs and repos yet
 * Not the best vetting of github repos (urls) 
+* No overrides or other types of build jobs, just basic docker for now
 
 ## What's Next?
-* ~~Build on the concept of a "repo registry" with auto-discoverable local repos via a docker volume~~
-* Proper templated, dynamic, build job pipelines
+* ~~A "repo registry" and the ability to register repos through a docker volume~~
+* ~~Proper templated, dynamic, build job pipelines~~ _sorta done, need more templates_
+* Discover and override target job template
+* More jobs templates
 
 ## Where is this going?
 Robo-jenkins will be a CI/CD platform with as little Jenkins Koolaid as possible.  Born from the pain of maintaining a Jenkins environment, with hundreds of build job types, and plugins, and conflicting requirements... robo-jenkins leverages docker to abstract out and distribute complexity from Jenkins to other places.  Mainly, docker containers which can be crated by anyone, enabling others to partake in the joys of Jenkins administration without actually needing to touch Jenkins.
