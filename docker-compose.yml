@@ -14,4 +14,4 @@ services:
     #   - "JENKINS_URL="
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - "${PWD}/testing/data/repos/:/usr/share/jenkins/repo_registry/"
+      - "./testing/data/repos/:/usr/share/jenkins/repo_registry/"
