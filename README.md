@@ -9,7 +9,7 @@ Robo-jenknins is underdevelopment and is considered only a POC as of now
 * Sane defaults
 * Working use of local `docker.sock`
 * Working config.d framework for easy startup bashing
-* Basic repo registry mechanic
+* Basic yaml based repo registry mechanic
 * Basic automation that creates one build job for every branch in every repo in the repo registry
 * Working scaffolding for supporting different and pluggable job templates
 * Job template that builds all `Dockerfiles`
@@ -17,7 +17,20 @@ Robo-jenknins is underdevelopment and is considered only a POC as of now
 ### Repo Registry
 The repo registry is an abstract concept, in it's simplest form it is just a list of github repositories you want rebo-jenkins to consider for build jobs. Support for non-github repos such as local repos are coming soon.
 
-Currently it is just a directory located at `JENKINS_REPO_REGISTRY`, defaulted to `/usr/share/jenkins/repo_registry` which is sniffed out by the seed job.  Just drop text files into this directory containing a list of github repos (urls), one per line, you would like robo-jenkins to consider for ingestion.   A subprocess aggregates all the files in this directory recursively, does some sanitation (removes `#comments` and extraneous white spaces), dedups, and creates a "master list" of repos for the seed job to consume and work off of. The contents in the `JENKINS_REPO_REGISTRY` directory can be modified at anytime, the next run of the seed job will do the right thing (mostly).
+Currently it is just a directory located at `JENKINS_REPO_REGISTRY`, defaulted to `/usr/share/jenkins/repo_registry` which is sniffed out by the seed job.  Just drop yaml files into this directory containing a list of github repos (urls) you would like robo-jenkins to consider for ingestion. A subprocess aggregates all the yaml files in this directory, does some sanitation (removes repos with out a url / dedup), and creates a "master list" of repos for the seed job to consume and work off of. The contents in the `JENKINS_REPO_REGISTRY` directory can be modified at anytime, the next run of the seed job will do the right thing (mostly).
+
+#### Example
+```
+---
+# a few repos to test against
+repos:
+  - url: https://github.com/docker-library/buildpack-deps
+  - url: https://github.com/docker-library/django
+  - url: https://github.com/docker-library/docs
+  - url: https://github.com/docker-library/elasticsearch
+  - url: https://github.com/docker-library/gcc
+  - url: https://github.com/docker-library/ghost
+```
 
 ### Job Template
 Build jobs can be created and used as templates. They should be written in accordance with the Jenkins [`job-dsl-plugin`](https://github.com/jenkinsci/job-dsl-plugin/wiki) and dropped into the `/usr/share/jenkins/seed/job_templates/` directory. The code will be evaluated _almost_ as if it was part of the seed job. All methods of the jobs dsl [api](https://jenkinsci.github.io/job-dsl-plugin) should work barring any dsl specific to a particular Jenkins plugin that has not been installed. All templates in this directory will be considered when the seed job runs.
@@ -39,16 +52,18 @@ Robo-jenkins will be a CI/CD platform with as little Jenkins Koolaid as possible
 ## Key points
 * All build steps will be distilled into docker runs, builds, and pushes (expect for meta-jobs)
 * Minimal Jenkins plugins
-* No groovy necessary!
 * Relatively small footprint
 * Just add docker! (via `docker.sock`)
 * Run robo-jenkins locally for your own personal build environment
 * Run robo-jenkins in a docker swarm as a single master
 * Run robo-jenkins in multi docker daemon configurations via generic robo-slaves 
 * Standards for environment vars and volumes
-* Distributed, simple, friendly yaml configuration of build jobs
 * Support for upstream links
 * Support for building all types of applications, not just docker
 * Autodiscover all the things
 * Default all the things
 * Override only the things you need to
+
+## Maybe one day
+* No groovy necessary!
+* Distributed, simple, friendly yaml configuration of build jobs

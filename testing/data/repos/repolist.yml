@@ -1,0 +1,33 @@
+---
+# a few repos to test against
+repos:
+  - url: https://github.com/docker-library/buildpack-deps
+  - url: https://github.com/docker-library/django
+  - url: https://github.com/docker-library/docs
+  - url: https://github.com/docker-library/elasticsearch
+  - url: https://github.com/docker-library/gcc
+  - url: https://github.com/docker-library/ghost
+  - url: https://github.com/docker-library/golang
+  - url: https://github.com/docker-library/haproxy
+  - url: https://github.com/docker-library/hello-world
+  - url: https://github.com/docker-library/httpd
+  - url: https://github.com/docker-library/logstash
+  - url: https://github.com/docker-library/mariadb
+  - url: https://github.com/docker-library/memcached
+  - url: https://github.com/docker-library/mongo
+  - url: https://github.com/docker-library/mysql
+  - url: https://github.com/docker-library/nginx
+  - url: https://github.com/docker-library/node
+  - url: https://github.com/docker-library/official-images
+  - url: https://github.com/docker-library/openjdk
+  - url: https://github.com/docker-library/percona
+  - url: https://github.com/docker-library/php
+  - url: https://github.com/docker-library/postgres
+  - url: https://github.com/docker-library/pypy
+  - url: https://github.com/docker-library/python
+  - url: https://github.com/docker-library/rabbitmq
+  - url: https://github.com/docker-library/rails
+  - url: https://github.com/docker-library/redis
+  - url: https://github.com/docker-library/ruby
+  - url: https://github.com/docker-library/tomcat
+  - url: https://github.com/docker-library/wordpress

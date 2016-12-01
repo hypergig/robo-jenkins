@@ -1,4 +1,4 @@
-FROM jenkins:2.19.2-alpine
+FROM jenkins:2.19.3-alpine
 MAINTAINER hypergig@gmail.com
 
 # environmet vars
@@ -11,7 +11,8 @@ ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false" \
 
 # packages and sudoers
 USER root
-RUN apk add --no-cache docker sudo && echo "jenkins ALL=NOPASSWD: ALL" >> /etc/sudoers
+RUN apk add --no-cache docker sudo \
+    && echo "jenkins ALL=NOPASSWD: ALL" >> /etc/sudoers
 USER jenkins
 
 # jenkins plugins
@@ -23,3 +24,5 @@ RUN /usr/local/bin/install-plugins.sh \
 
 # run time requirements
 COPY usr /usr
+ADD https://repo1.maven.org/maven2/org/yaml/snakeyaml/1.17/snakeyaml-1.17.jar \
+    ${JENKINS_CONFIG_HOME}/seed/libs/
