@@ -40,17 +40,38 @@ println new Yaml().dumpAsMap(repo_registry)
 repo_registry.each {
     repo = it.url
     println "Processing repository: $repo"
-    def parent_folder = repo.split('/')[-2,-1].join('.')
+
+    if (repo.startsWith('git')){
+      repo_proto='git'
+    }
+    else if (repo.startsWith('https')) {
+      repo_proto='https'
+    }
+    else
+    {
+      println "Unknow repo proto for $repo!:\n$stderr"
+      return false
+    }
+
+    if (repo_proto.equals('https')){
+      parent_folder = repo.split('/')[-2,-1].join('.')
+    } else
+    {
+      parent_folder = repo.split(':')[1][0..-5].tr('/','.')
+    }
+
+
+    println "Parent fo;der: $parent_folder"
     folder(parent_folder) { description("Build jobs for $repo") }
 
     // todo - use github api
     println "Fetching branches"
     def process = "git ls-remote -h $repo".execute()
     process.waitForOrKill(5000)
-    
+
     def branches = new StringBuilder(), stderr = new StringBuilder()
     process.waitForProcessOutput(branches, stderr)
-    
+
     int rc = process.exitValue()
     if (rc) {
       println "Failed to fetch branches:\n$stderr"
