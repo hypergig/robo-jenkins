@@ -1,5 +1,5 @@
 # robo-jenkins
-Using docker to hyper modularize Jenkins
+Using docker to hyper modularize Jenkins.  Currently installs a docker 1.12.3 client from get.docker.com
 
 ## Stay tuned!
 Robo-jenknins is underdevelopment and is considered only a POC as of now
