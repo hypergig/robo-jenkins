@@ -43,6 +43,17 @@ docker build -t localhost:5000/app_name:master
 docker push localhost:5000/app_name:master
 ```
 
+### Dind alternative
+The default docker-compose.yml does docker builds using the same docker daemon that is running Jenkins.  There is an alternative compose file, docker-compose.dind.yml, that instead uses docker dind.  You can use it instead by passing `-f docker-compose.dind.yml` to all docker compose commands.
+Example:
+```
+docker-compose -f docker-compose.dind.yml build
+docker-compose -f docker-compose.dind.yml up
+```
+
+By default, this will use a docker daemon with the VFS storage driver.  This works everywhere, but is very slow.  It is recommended to set the storage driver to overlay or overlay2 for more performant builds.  You can do this by setting the command key docker-compose.dind.yml to `--storage-driver=overlay` or `--storage-driver=overlay2`.  However, this requires that the docker daemon that is running the dind container have the same storage driver set.  This is non trivial on docker for Mac, but can be done as in http://stackoverflow.com/questions/39455764/change-storage-driver-for-docker-on-os-x
+
+
 ## Issues
 * No cleanup of non used jobs and repos yet
 * Not the best vetting of github repos (urls)
