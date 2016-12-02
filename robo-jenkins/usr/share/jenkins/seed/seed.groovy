@@ -2,6 +2,46 @@
 import org.yaml.snakeyaml.Yaml
 
 
+/**
+ * Parse the git transpart protocol from a repository URL.
+ * Currently assumes git if the url starts with 'git' and HTTPS otherwise
+ * @param repo Repository URL to parse.
+ */
+def getRepoProto(repo) {
+  if (repo.startsWith('git')){
+    return "git"
+  }
+  else {
+    return "https"
+  }
+}
+
+/**
+ * Transforms a git repository URL into a form that is suitable for use as a
+ * Jenkins folder name.  This remove all protocol specific tokens
+ * (like 'https://...' or 'git@...'), drops '.git' from the end of the URL if present, and
+ * replaces all slashes with dots.
+ *
+ * @param repo Repository url to transform
+ */
+def getRepoParentFolder(repo){
+  clean_repo_name = repo
+
+  // Remove trailing '.git' if present
+  if (clean_repo_name.endsWith('.git')){
+    clean_repo_name = clean_repo_name[0..-5]
+  }
+
+  if (getRepoProto(repo).equals('https')){
+    //Remove https proto tokens and convert slashes to dot
+    return clean_repo_name.split('/')[-2,-1].join('.')
+  }
+  else {
+    //Remove git proto tokesns and convert slashes to dot
+    return clean_repo_name.split(':')[1].tr('/','.')
+  }
+}
+
 // read and cache all job templates
 println 'Caching job templates'
 def job_template_cache = [:]
@@ -41,27 +81,8 @@ repo_registry.each {
     repo = it.url
     println "Processing repository: $repo"
 
-    if (repo.startsWith('git')){
-      repo_proto='git'
-    }
-    else if (repo.startsWith('https')) {
-      repo_proto='https'
-    }
-    else
-    {
-      println "Unknow repo proto for $repo!:\n$stderr"
-      return false
-    }
+    parent_folder = getRepoParentFolder(repo)
 
-    if (repo_proto.equals('https')){
-      parent_folder = repo.split('/')[-2,-1].join('.')
-    } else
-    {
-      parent_folder = repo.split(':')[1][0..-5].tr('/','.')
-    }
-
-
-    println "Parent fo;der: $parent_folder"
     folder(parent_folder) { description("Build jobs for $repo") }
 
     // todo - use github api
@@ -80,9 +101,9 @@ repo_registry.each {
 
     // process each branch in each repo
     branches.eachLine {
+        println "$it"
         branch = it.split('/')[-1]
-        println "Processing branch: $branch"
-
+        println "Processing branch: $branch of $repo"
         job_name = "$parent_folder/$branch"
         println "Processing job: $job_name"
 
