@@ -6,16 +6,8 @@ services:
     build: robo-jenkins/.
     ports:
       - "80:8080"
-    environment:
-      AWS_ACCESS_KEY_ID:
-      AWS_SECRET_ACCESS_KEY:
-      AWS_DEFAULT_REGION:
-      REGISTRY_USER:
-      REGISTRY_PW:
-      REGISTRY_HOST: quay.io
-      GIT_HTTPS_USER:
-      GIT_HTTPS_PW:
-      GIT_HOST: github.com
+    env_file: testing/data/developer.env
+    #environment:
       #GIT_COMMITTER_NAME:
       #GIT_COMMITTER_EMAIL:
       #JENKINS_EXECUTERS:

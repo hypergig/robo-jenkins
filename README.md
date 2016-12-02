@@ -36,6 +36,13 @@ repos:
 ### Job Template
 Build jobs can be created and used as templates. They should be written in accordance with the Jenkins [`job-dsl-plugin`](https://github.com/jenkinsci/job-dsl-plugin/wiki) and dropped into the `/usr/share/jenkins/seed/job_templates/` directory. The code will be evaluated _almost_ as if it was part of the seed job. All methods of the jobs dsl [api](https://jenkinsci.github.io/job-dsl-plugin) should work barring any dsl specific to a particular Jenkins plugin that has not been installed. All templates in this directory will be considered when the seed job runs.
 
+### Configuration and Secrets
+Most configuration for robo-jenkins is done using environment variables.  While
+these can be added directly to the environment key of a docker compose file, this is not appropriate for secrets or other developer specific configuration.
+
+Instead, these types of variables should be added to `testing/data/developer.env`.  This is a standard docker-compose env file that is sourced by this project's compose files.  This file is mandatory, but not provided by this project.  However, an example developer.env that contains all possible variables is provided at `testing/data/developer.env.template`.  Before using this project, you must copy `testing/data/developer.env.template` to `testing/data/developer.env` and set whatever variables are required to perform your builds.  This will generally at least be the `GIT_HTTPS_USER`,
+`GIT_HTTPS_PW`, and `GIT_HOST` variables for building from private git repositories and the REGISTRY_USER, REGISTRY_PW, and REGISTRY_HOST variables if pushing or pulling Docker images from a private registry.  See `testing/data/developer.env.template` for more information.
+
 ### Local private registry
 A local private docker regsitry is provided by the registry service.  It is configured to listen on localhost:5000 on the docker host that is running the compose file.  To push an image to the local private registry, you must tag it with localhost:5000/${image name}:{image tag}.  For example:
 ```
