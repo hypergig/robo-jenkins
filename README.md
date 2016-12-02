@@ -2,7 +2,7 @@
 Using docker to hyper modularize Jenkins
 
 ## Stay tuned!
-Robo-jenknins is underdevelopment and is considered only a POC as of now 
+Robo-jenknins is underdevelopment and is considered only a POC as of now
 
 ## What works?
 * Boilerplate dockerized Jenkins master
@@ -13,6 +13,7 @@ Robo-jenknins is underdevelopment and is considered only a POC as of now
 * Basic automation that creates one build job for every branch in every repo in the repo registry
 * Working scaffolding for supporting different and pluggable job templates
 * Job template that builds all `Dockerfiles`
+* Local private docker registry for intermediate steps and local testing of build pipelines
 
 ### Repo Registry
 The repo registry is an abstract concept, in it's simplest form it is just a list of github repositories you want rebo-jenkins to consider for build jobs. Support for non-github repos such as local repos are coming soon.
@@ -35,9 +36,16 @@ repos:
 ### Job Template
 Build jobs can be created and used as templates. They should be written in accordance with the Jenkins [`job-dsl-plugin`](https://github.com/jenkinsci/job-dsl-plugin/wiki) and dropped into the `/usr/share/jenkins/seed/job_templates/` directory. The code will be evaluated _almost_ as if it was part of the seed job. All methods of the jobs dsl [api](https://jenkinsci.github.io/job-dsl-plugin) should work barring any dsl specific to a particular Jenkins plugin that has not been installed. All templates in this directory will be considered when the seed job runs.
 
+### Local private registry
+A local private docker regsitry is provided by the registry service.  It is configured to listen on localhost:5000 on the docker host that is running the compose file.  To push an image to the local private registry, you must tag it with localhost:5000/${image name}:{image tag}.  For example:
+```
+docker build -t localhost:5000/app_name:master
+docker push localhost:5000/app_name:master
+```
+
 ## Issues
 * No cleanup of non used jobs and repos yet
-* Not the best vetting of github repos (urls) 
+* Not the best vetting of github repos (urls)
 * No overrides or other types of build jobs, just basic docker for now
 
 ## What's Next?
@@ -56,7 +64,7 @@ Robo-jenkins will be a CI/CD platform with as little Jenkins Koolaid as possible
 * Just add docker! (via `docker.sock`)
 * Run robo-jenkins locally for your own personal build environment
 * Run robo-jenkins in a docker swarm as a single master
-* Run robo-jenkins in multi docker daemon configurations via generic robo-slaves 
+* Run robo-jenkins in multi docker daemon configurations via generic robo-slaves
 * Standards for environment vars and volumes
 * Support for upstream links
 * Support for building all types of applications, not just docker

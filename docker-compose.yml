@@ -16,3 +16,9 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "./testing/data/repos/:/usr/share/jenkins/repo_registry/"
+
+  registry:
+    image: registry:2
+    # For host docker, use the port network, binding to localhost specifically
+    ports:
+    - "localhost:5000:5000"
