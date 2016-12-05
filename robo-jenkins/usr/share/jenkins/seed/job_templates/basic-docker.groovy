@@ -8,8 +8,6 @@ job("$job_name") {
         shell("""
                 bash -c '
                     set -e
-                    echo \"---| environment variables |---\"
-                    env | sort
                     contexts=\"\$(find . -type f -name Dockerfile -exec dirname {} \\;)\"
                     echo \"---| docker contexts |---\"
                     echo \"\$contexts\"
