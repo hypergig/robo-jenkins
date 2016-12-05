@@ -63,12 +63,12 @@ new File("${JENKINS_REPO_REGISTRY}").eachFileMatch(~/.*\.yml$/) {
         repo_registry.addAll(new Yaml().load(it.newReader()).repos)
     }
     catch(all) {
-        println "Failed to ingest yml file: $repo_yml_path\n[$all]"        
+        println "Failed to ingest yml file: $repo_yml_path\n[$all]"
     }
 }
 
 println "Sanitizing repo registry"
-// remove entries that don't have a url 
+// remove entries that don't have a url
 repo_registry -= repo_registry.grep { ! it.url }
 // remove duplicates based on url
 repo_registry.unique { a, b -> a.url <=> b.url }
@@ -101,7 +101,6 @@ repo_registry.each {
 
     // process each branch in each repo
     branches.eachLine {
-        println "$it"
         branch = it.split('/')[-1]
         println "Processing branch: $branch of $repo"
         job_name = "$parent_folder/$branch"
