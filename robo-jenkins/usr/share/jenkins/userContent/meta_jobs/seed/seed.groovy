@@ -1,47 +1,6 @@
 // the seed job dsl script
 import org.yaml.snakeyaml.Yaml
-
-
-/**
- * Parse the git transpart protocol from a repository URL.
- * Currently assumes git if the url starts with 'git' and HTTPS otherwise
- * @param repo Repository URL to parse.
- */
-def getRepoProto(repo) {
-  if (repo.startsWith('git')){
-    return "git"
-  }
-  else {
-    return "https"
-  }
-}
-
-/**
- * Transforms a git repository URL into a form that is suitable for use as a
- * Jenkins folder name.  This remove all protocol specific tokens
- * (like 'https://...' or 'git@...'), drops '.git' from the end of the URL if present, and
- * replaces all slashes with dots.
- *
- * @param repo Repository url to transform
- */
-def getRepoFriendlyName(repo){
-  clean_repo_name = repo
-
-  // Remove trailing '.git' if present
-  if (clean_repo_name.endsWith('.git')){
-    clean_repo_name = clean_repo_name[0..-5]
-  }
-
-  if (getRepoProto(repo).equals('https')){
-    //Remove https proto tokens and convert slashes to dot
-    return clean_repo_name.split('/')[-2,-1].join('.')
-  }
-  else {
-    //Remove git proto tokens and convert slashes to dot
-    return clean_repo_name.split(':')[1].tr('/','.')
-  }
-}
-
+import robo.RoboUtil
 
 // ingest repo registry
 def repo_registry = []
@@ -73,7 +32,7 @@ folder('branchers') { description("Folder to hold all brancher jos") }
 repo_registry.each {
     def my_repo_registry_entry = it
     def repo = my_repo_registry_entry.url
-    def brancher_name = "branchers/${getRepoFriendlyName(repo)}"
+    def brancher_name = "branchers/${RoboUtil.getRepoFriendlyName(repo)}"
     println "Creating brancher job: $brancher_name"
 
     // create brancher for repo
@@ -117,7 +76,7 @@ repo_registry.each {
             }
         }
     }
-    
+
     // queue brancher job to run
     // todo - only trigger new/updated brancher jobs
     queue(brancher_name)
