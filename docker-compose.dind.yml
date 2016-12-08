@@ -12,7 +12,7 @@ services:
     #   - "GIT_COMMITTER_EMAIL="
     #   - "JENKINS_EXECUTERS="
     #   - "JENKINS_URL="
-    #   - "ROBO_JENKINS_DEFAULT_JOB="
+    #   - "ROBO_DEFAULT_JOB="
     volumes:
       - "./testing/data/repos/:/usr/share/jenkins/repo_registry/"
 

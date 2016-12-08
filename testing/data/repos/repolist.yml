@@ -31,3 +31,5 @@ repos:
   - url: https://github.com/docker-library/ruby
   - url: https://github.com/docker-library/tomcat
   - url: https://github.com/docker-library/wordpress
+  - url: https://github.com/hypergig/robo-jenkins
+  - url: https://github.com/hypergig/robo-example

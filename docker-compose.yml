@@ -12,10 +12,10 @@ services:
       #GIT_COMMITTER_EMAIL:
       #JENKINS_EXECUTERS:
       #JENKINS_URL:
-      #ROBO_JENKINS_DEFAULT_JOB:
+      #ROBO_DEFAULT_JOB:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - "./testing/data/repos/:/usr/share/jenkins/repo_registry/"
+      - "./testing/data/repos/:/usr/share/jenkins/userContent/repo_registry/"
 
   registry:
     image: registry:2

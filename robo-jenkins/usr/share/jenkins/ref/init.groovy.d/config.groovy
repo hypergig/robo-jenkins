@@ -43,7 +43,7 @@ println "--> setting number of executors on master to $exes... done"
 // create seed job
 println '--> bootstrapping seed job'
 def jobName = "seed"
-String configXml = new File("$jenkins_config_home/seed/seed.xml").text
+String configXml = new File("$jenkins_config_home/seed.xml").text
 def xmlStream = new ByteArrayInputStream( configXml.getBytes() )
 Jenkins.instance.createProjectFromXML(jobName, xmlStream)
 println '--> bootstrapping seed job... done'
