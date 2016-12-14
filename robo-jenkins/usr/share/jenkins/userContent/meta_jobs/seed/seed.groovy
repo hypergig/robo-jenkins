@@ -36,43 +36,17 @@ repo_registry.each {
     println "Creating brancher job: $brancher_name"
 
     // create brancher for repo
-    job(brancher_name) {
-        scm {
-            git {
-                remote {
-                    url(repo)
-                }
-                extensions {
-                    pruneStaleBranch()
-                    // doing a shallow clone without specifying a branch
-                    // results in a error
-                    //cloneOptions { shallow() }
-                    relativeTargetDirectory('repo')
-                }
-            }
+    pipelineJob(brancher_name) {
+        environmentVariables {
+            keepBuildVariables (true)
+            keepSystemVariables (true)
+            env('MY_REPO_REGISTRY_ENTRY', my_repo_registry_entry.inspect())
+            envs(binding.variables.findAll{ it =~ /^ROBO_.*/ })
         }
-        wrappers {
-            preBuildCleanup {
-                includePattern('meta_jobs,job_templates')
-                deleteDirectories()
-            }
-            copyToSlaveBuildWrapper {
-                includes('meta_jobs/brancher/**,meta_jobs/libs/**,job_templates/**')
-                excludes('')
-                flatten(false)
-                includeAntExcludes(false)
-                relativeTo('userContent')
-                hudsonHomeRelative(false)
-            }
-        }
-        steps {
-            environmentVariables {
-                env('MY_REPO_REGISTRY_ENTRY', my_repo_registry_entry.inspect())
-            }
-            dsl{
-                external('meta_jobs/brancher/brancher.groovy')
-                removeAction('DELETE')
-                additionalClasspath('meta_jobs/libs/**')
+        definition {
+            cps {
+                script(readFileFromWorkspace(
+                    'meta_jobs/seed/brancher_workflow.groovy'))
             }
         }
     }

@@ -13,6 +13,7 @@ services:
     #   - "JENKINS_EXECUTERS="
     #   - "JENKINS_URL="
     #   - "ROBO_DEFAULT_JOB="
+    #   - "ROBO_JOB_TEMPLATE_REPO="
     volumes:
       - "./testing/data/repos/:/usr/share/jenkins/repo_registry/"
 

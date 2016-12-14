@@ -9,18 +9,18 @@ Robo-jenknins is underdevelopment and is considered only a POC as of now
 * Sane defaults
 * Working use of local `docker.sock`
 * Working config.d framework for easy startup bashing
-* Basic yaml based repo registry mechanic
+* Basic yaml based repo registry mechanic with job template override support
+* Framework for repo level configuration file, ie `.robo` file 
 * Automation that creates one build job for every branch in every repo in the repo registry
 * Working scaffolding for supporting different and pluggable job templates
+* Working job template override from repo registry or `.robo` file
 * Job template that builds all `Dockerfiles`
 * Local private docker registry for intermediate steps and local testing of build pipelines
 
 ## Repo Registry
 The repo registry is an abstract concept, in it's simplest form it is just a list of github repositories you want robo-jenkins to consider for build jobs. Support for non-github repos such as local repos are coming soon.
 
-Currently it is just a directory located at `ROBO_REPO_REGISTRY` (`/usr/share/jenkins/userContent/repo_registry`) which is sniffed out by the seed job.  Just drop yaml files into this directory containing a list of github repos (urls) you would like robo-jenkins to consider for ingestion. The seed job aggregates all the yaml files in this directory, does some sanitation (removes repos with out a url / dedup), and creates a "master list" of repos for it to work off of. The contents in the `ROBO_REPO_REGISTRY` directory can be modified at anytime, the next run of the seed job will do the right thing (mostly).
-
-### Example
+Currently it is just a directory located at `ROBO_REPO_REGISTRY` (`/usr/share/jenkins/userContent/repo_registry`) which is sniffed out by the seed job.  Just drop yaml files into this directory containing a list of github repos (urls) you would like robo-jenkins to consider for ingestion. The seed job aggregates all the yaml files in this directory, does some sanitation (removes repos with out a url / dedup), and creates a "master list" of repos for it to work off of. The contents in the `ROBO_REPO_REGISTRY` directory can be modified at anytime, the next run of the seed job will do the right thing (mostly). An example of this might look like:
 ```
 ---
 # a few repos to test against
@@ -33,10 +33,11 @@ repos:
   - url: https://github.com/docker-library/ghost
 ```
 
-## Job Template
-Job templates are used by the brancher jobs to spawn the actual build jobs that build things. They should be written in accordance with the Jenkins [`job-dsl-plugin`](https://github.com/jenkinsci/job-dsl-plugin/wiki) and dropped into the `ROBO_JOB_TEMPLATES` (`/usr/share/jenkins/userContent/job_templates/`) directory. The code will be evaluated _almost_ as if it was part of the brancher job that is executing it. All methods of the jobs dsl [api](https://jenkinsci.github.io/job-dsl-plugin) should work barring any dsl specific to a particular Jenkins plugin that has not been installed. All templates in this directory will be considered when a brancher job runs.
+## Robo file
+The `.robo` file is a special file that contains some configuration to help robo-jenkins make certain decisions. It lives at the root of the repo and can be different in every branch. Right now it doesn't do too much, but you can use it to override the job template target for your branch. Check out the [overrides](#overrides) section below for more information.
 
-### Example
+## Job Template
+Job templates are used by the brancher jobs to spawn the actual build jobs that build things. They should be written in accordance with the Jenkins [`job-dsl-plugin`](https://github.com/jenkinsci/job-dsl-plugin/wiki) and dropped into the `ROBO_JOB_TEMPLATES` (`/usr/share/jenkins/userContent/job_templates/`) directory. The code will be evaluated _almost_ as if it was part of the brancher job that is executing it. All methods of the jobs dsl [api](https://jenkinsci.github.io/job-dsl-plugin) should work barring any dsl specific to a particular Jenkins plugin that has not been installed. All templates in this directory will be considered when a brancher job runs. An example of this may look like:
 ```
 // job template for most useful jenkins job ever
 job("$job_name") {
@@ -49,6 +50,26 @@ job("$job_name") {
     }
 }
 ```
+
+### External Job Template Repo
+Robo-jenkins supports the use of external job templates by way of git. By default, robo-jenkins will ship with a few ultra generic job templates, but in must situations a Jenkins administration would rather user their own. This is easily done by setting the `ROBO_JOB_TEMPLATE_REPO` environment var to the git url of your external job template repo. Robo-jenkins will ingest all the templates at the master branch of this repo **after** it ingests the built in templates. This is an important point, as it allows you to override the built in templates with your own, so long as they are of the same name.
+
+### Overrides
+The target job template is determined when a brancher job processes a branch of a repo. By default the template set in the `ROBO_DEFAULT_JOB` environment variable is used, which also by default, is set to `basic-docker`. You can override this variable on the command line when you start robo-jenkins to any job template it has access to. Furthermore, you can override your target per repo right in the repo registry yaml.  This is easily done by setting the `robo-job` key to your template. Note, this overrides **all** the branches in said repo. An example of this may look like:
+```
+---
+repos:
+  - url: https://github.com/hypergig/robo-jenkins
+    robo-job: basic-docker
+```
+But wait there's more! Additionally, you can override the target job template from the `.robo` file. This override wins out over all other forms of targeting. The cool thing about overriding your template this way is, you can use different job templates per branch in your repo, as you can have different `.robo` files in all your branches. An example of this may look like:
+```
+---
+version: 1.0.0-SNAPSHOT
+robo-job: basic-docker
+```
+In summary, the job template override mechanic works like this:
+`.robo` file > repo registry > `ROBO_DEFAULT_JOB` environment variable
 
 ## Seed Job
 The seed job is the first Jenkins job to be created and is responsible for sparking the all job automation in robo-jenkins.  It is boot strapped at startup from xml, then trigged when Jenkins starts. It ingests the repo registry and creates a Jenkins folder and bracher job for each repo. 
@@ -107,12 +128,14 @@ By default, this will use a docker daemon with the VFS storage driver.  This wor
 ## Issues
 * ~~No cleanup of non used jobs and repos yet~~
 * Not the best vetting of github repos (urls)
-* No overrides or other types of build jobs, just basic docker for now
+* ~~No overrides or other types of build jobs~~
+* Just basic docker job template for now
 
 ## What's Next?
 * ~~A "repo registry" and the ability to register repos through a docker volume~~
 * ~~Proper templated, dynamic, build job pipelines~~ _sorta done, need more templates_
-* Auto discover and override target job template
+* ~~Override target job template~~
+* Auto discover target job template
 * More jobs templates
 
 ## Where is this going?

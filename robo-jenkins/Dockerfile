@@ -9,6 +9,7 @@ ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false" \
     ROBO_REPO_REGISTRY="/usr/share/jenkins/userContent/repo_registry" \
     ROBO_JOB_TEMPLATES="/usr/share/jenkins/userContent/job_templates" \
     ROBO_DEFAULT_JOB="basic-docker" \
+    ROBO_JOB_TEMPLATE_REPO="" \
     DOCKER_VERSION="1.12.3" \
     DOCKER_SHA256="626601deb41d9706ac98da23f673af6c0d4631c4d194a677a9a1a07d7219fa0f" \
     DOCKER_URL="get.docker.com"
@@ -45,9 +46,11 @@ RUN /usr/local/bin/install-plugins.sh \
       startup-trigger-plugin \
       copy-to-slave \
       ws-cleanup \
-      envinject
+      envinject \
+      workflow-aggregator \
+      git-userContent
 
 # run time requirements
-COPY usr /usr
 ADD https://repo1.maven.org/maven2/org/yaml/snakeyaml/1.17/snakeyaml-1.17.jar \
     ${JENKINS_CONFIG_HOME}/userContent/meta_jobs/libs/
+COPY usr /usr

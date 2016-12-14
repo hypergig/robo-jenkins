@@ -32,4 +32,6 @@ repos:
   - url: https://github.com/docker-library/tomcat
   - url: https://github.com/docker-library/wordpress
   - url: https://github.com/hypergig/robo-jenkins
+    robo-job: basic-docker
   - url: https://github.com/hypergig/robo-example
+    robo-job: basic-docker
