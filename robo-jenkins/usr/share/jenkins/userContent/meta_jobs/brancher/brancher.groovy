@@ -25,12 +25,12 @@ println "Robo file path: $robo_file_path"
 // find all job templates, external templates of the same name overrite builtin
 println 'Finding builtin job templates'
 def job_templates_files = []
-new File(builtin_job_templates_path).eachFileMatch(~/.*\.groovy$/){ 
+new File(builtin_job_templates_path).eachFileMatch(~/.*\.groovy$/){
     job_templates_files += it
 }
 if (! ROBO_JOB_TEMPLATE_REPO.empty) {
     println "Finding external job templates, these override the builtin ones"
-    new File(external_job_templates_path).eachFileMatch(~/.*\.groovy$/){ 
+    new File(external_job_templates_path).eachFileMatch(~/.*\.groovy$/){
         job_templates_files += it
     }
 }
@@ -38,14 +38,18 @@ else {
     println "External job template repo not defined"
 }
 
-// cache job templates
+// read and cache all job templates
+println 'Caching job templates'
 def job_template_cache = [:]
 job_templates_files.each {
     def template_path = it.toString()
+    println "Template_path is $template_path"
     def template_name = template_path.split('/')[-1].split('\\.')[0]
     println "Adding job template to cache: $template_name"
+    def templateClass = this.class.classLoader.parseClass(it)
+
     job_template_cache.put(template_name,
-        readFileFromWorkspace(template_path))
+        templateClass)
 }
 
 // discover remote branches
@@ -99,9 +103,6 @@ branches.each{
     println "Target job template: $target_job_template"
 
     // create build job from template
-    job_template_code = job_template_cache[target_job_template]
-    def wrapper = """
-        metaClass.'static'.println = { Object o -> x.println o }
-        x.with { $job_template_code }"""
-    Eval.x(this, wrapper)
+    job_template_class = job_template_cache[target_job_template]
+    job_template_class.createJob(this, job_name, repo, branch)
 }
