@@ -30,7 +30,7 @@ println "--> setting jenkins url to $url"
 jlc = JenkinsLocationConfiguration.get()
 jlc.setUrl(url)
 jlc.save()
-println "--> setting jenkins url to $url... done" 
+println "--> setting jenkins url to $url... done"
 
 
 // fixing master executers
@@ -39,6 +39,14 @@ println "--> setting number of executors on master to $exes"
 Jenkins.instance.setNumExecutors(exes)
 println "--> setting number of executors on master to $exes... done"
 
+// set global quiet period if JENKINS_QUIET_PERIOD is set
+// If not set, Jenkins defaults to 5 seconds
+if (env.containsKey('JENKINS_QUIET_PERIOD')) {
+    int qp = env['JENKINS_QUIET_PERIOD'].toInteger()
+    println "--> setting global quiet period on master to $qp"
+    Jenkins.instance.setQuietPeriod(qp)
+    println "--> setting global quiet period on master to $qp... done"
+}
 
 // create seed job
 println '--> bootstrapping seed job'

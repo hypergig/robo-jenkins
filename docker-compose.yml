@@ -14,6 +14,8 @@ services:
       #JENKINS_URL:
       #ROBO_DEFAULT_JOB:
       #ROBO_JOB_TEMPLATE_REPO:
+      # Default quite period is 5
+      #JENKINS_QUIET_PERIOD: 0
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "./testing/data/repos/:/usr/share/jenkins/userContent/repo_registry/"
