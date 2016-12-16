@@ -26,8 +26,8 @@
       <usingScriptText>false</usingScriptText>
       <ignoreExisting>false</ignoreExisting>
       <ignoreMissingFiles>false</ignoreMissingFiles>
-      <failOnMissingPlugin>false</failOnMissingPlugin>
-      <unstableOnDeprecation>false</unstableOnDeprecation>
+      <failOnMissingPlugin>true</failOnMissingPlugin>
+      <unstableOnDeprecation>true</unstableOnDeprecation>
       <removedJobAction>DELETE</removedJobAction>
       <removedViewAction>IGNORE</removedViewAction>
       <lookupStrategy>JENKINS_ROOT</lookupStrategy>

@@ -15,7 +15,7 @@ node {
 
         // checkout userContent repo from master
         dir("userContent") { git "http://localhost:8080/userContent.git" }
-        
+
         // checkout repo source code
         dir("repo") { git "${my_repo_registry_entry.url}" }
     }
@@ -23,7 +23,9 @@ node {
         jobDsl (
             removedJobAction: 'DELETE',
             targets: 'userContent/meta_jobs/brancher/brancher.groovy',
-            additionalClasspath: 'userContent/meta_jobs/libs/**'
+            additionalClasspath: 'userContent/meta_jobs/libs/**',
+            failOnMissingPlugin: true,
+            unstableOnDeprecation: true
         )
     }
 }
