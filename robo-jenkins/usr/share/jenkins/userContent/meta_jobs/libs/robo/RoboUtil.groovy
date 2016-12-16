@@ -4,27 +4,25 @@ import org.yaml.snakeyaml.Yaml
 
 class RoboUtil {
 
-    static {
+    static List executeHelper(String command, String wd = '/'){
         /**
-         * Add helper methos to string that executes the string as a process
+         * Add helper method that executes a string as a process
          *
          */
-        String.metaClass.executeHelper = { wd = '/' ->
-            def process = delegate.execute(null, new File(wd))
-            process.waitForOrKill(5000)
+        def process = command.execute(null, new File(wd))
+        process.waitForOrKill(5000)
 
-            def stdout = new StringBuilder(), stderr = new StringBuilder()
-            process.waitForProcessOutput(stdout, stderr)
+        def stdout = new StringBuilder(), stderr = new StringBuilder()
+        process.waitForProcessOutput(stdout, stderr)
 
-            stdout = stdout.toString()
-            stderr = stderr.toString()
-            int rc = process.exitValue()
+        stdout = stdout.toString()
+        stderr = stderr.toString()
+        int rc = process.exitValue()
 
-            if (rc) {
-                throw(new Throwable("rc: $rc\nstderr: $stderr"))
-            }
-            [stdout, stderr]
+        if (rc) {
+            throw(new Throwable("rc: $rc\nstderr: $stderr"))
         }
+        return [stdout, stderr]
     }
 
     /**

@@ -71,7 +71,7 @@ branches.each{
     branch = it.key
     sha = it.value
     println "Processing branch: $branch ($sha) of $repo"
-    println "git checkout -f $sha".executeHelper(repo_path)[1]
+    println RoboUtil.executeHelper("git checkout -f $sha", repo_path)[1]
 
     job_name = "$parent_folder/$branch"
     println "Processing job: $job_name"

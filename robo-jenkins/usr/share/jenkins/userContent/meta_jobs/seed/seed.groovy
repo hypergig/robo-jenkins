@@ -2,6 +2,14 @@
 import org.yaml.snakeyaml.Yaml
 import robo.RoboUtil
 
+// the git userContent repo needs to be exercised to force it to startup
+// or else most of the brancers jobs will fail their first time running
+if ("${BUILD_NUMBER}" == "1") {
+    println 'First seed job run detected, preheating git userContent server'
+    println RoboUtil.executeHelper(
+        'git ls-remote -ht http://localhost:8080/userContent.git')[0]
+}
+
 // ingest repo registry
 def repo_registry = []
 println 'Ingesting repo registry'
