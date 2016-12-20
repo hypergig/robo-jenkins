@@ -60,7 +60,7 @@ class RoboUtil {
         }
         else {
             //Remove git proto tokens and convert slashes to dot
-            return clean_repo_name.split(':')[1].tr('/','.')
+            return clean_repo_name.split('://')[1].tr('/','.')
         }
     }
 
