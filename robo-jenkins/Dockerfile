@@ -1,4 +1,4 @@
-FROM jenkins:2.19.4-alpine
+FROM jenkins:2.32.1-alpine
 MAINTAINER hypergig@gmail.com
 
 # environmet vars
@@ -10,6 +10,7 @@ ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false" \
     ROBO_JOB_TEMPLATES="/usr/share/jenkins/userContent/job_templates" \
     ROBO_DEFAULT_JOB="basic-docker" \
     ROBO_JOB_TEMPLATE_REPO="" \
+    ROBO_NO_REPO_MANAGEMENT="" \
     DOCKER_VERSION="1.12.3" \
     DOCKER_SHA256="626601deb41d9706ac98da23f673af6c0d4631c4d194a677a9a1a07d7219fa0f" \
     DOCKER_URL="get.docker.com"
@@ -48,7 +49,8 @@ RUN /usr/local/bin/install-plugins.sh \
       ws-cleanup \
       envinject \
       workflow-aggregator \
-      git-userContent
+      git-userContent \
+      groovy-postbuild
 
 # run time requirements
 ADD https://repo1.maven.org/maven2/org/yaml/snakeyaml/1.17/snakeyaml-1.17.jar \

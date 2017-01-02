@@ -35,3 +35,4 @@ repos:
     robo-job: basic-docker
   - url: https://github.com/hypergig/robo-example
     robo-job: basic-docker
+  - url: git://git_server/test_repo_1

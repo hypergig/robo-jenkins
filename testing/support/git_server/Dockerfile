@@ -10,6 +10,10 @@ RUN git --version \
     && git init \
     && git add -v --all \
     && git commit -v -m 'first commit' \
+    && git checkout -b feature/new_feature \
+    && echo -e '1.1.0-SNAPSHOT\n' > version.txt \
+    && echo -e 'In a feature branch\n' >> README.md \
+    && git commit -v -a -m 'feature commit' \
     && git checkout --progress --detach
 ENTRYPOINT ["git", \
             "daemon", \

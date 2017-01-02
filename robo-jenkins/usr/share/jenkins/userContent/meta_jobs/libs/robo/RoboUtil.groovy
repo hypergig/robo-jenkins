@@ -4,11 +4,19 @@ import org.yaml.snakeyaml.Yaml
 
 class RoboUtil {
 
-    static List executeHelper(String command, String wd = '/'){
-        /**
-         * Add helper method that executes a string as a process
-         *
-         */
+    /**
+     * Helper method that creating an easy to read header for logs
+     *
+     */
+    static String header(String line) {
+        return line.center(50,'-')
+    }
+
+    /**
+     * Helper method that executes a command
+     *
+     */
+    static List executeHelper(def command, String wd = '/'){
         def process = command.execute(null, new File(wd))
         process.waitForOrKill(5000)
 
@@ -20,7 +28,8 @@ class RoboUtil {
         int rc = process.exitValue()
 
         if (rc) {
-            throw(new Throwable("rc: $rc\nstderr: $stderr"))
+            throw(new javaposse.jobdsl.dsl.DslException(
+                "rc: $rc\nstderr: $stderr"))
         }
         return [stdout, stderr]
     }

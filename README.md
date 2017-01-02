@@ -1,8 +1,10 @@
 # robo-jenkins
-Using docker to hyper modularize Jenkins.  Currently installs a docker 1.12.3 client from get.docker.com
+Using docker to hyper modularize Jenkins
+
 
 ## Stay tuned!
 Robo-jenknins is underdevelopment and is considered only a POC as of now
+
 
 ## What works?
 * Boilerplate dockerized Jenkins master
@@ -15,7 +17,41 @@ Robo-jenknins is underdevelopment and is considered only a POC as of now
 * Working scaffolding for supporting different and pluggable job templates
 * Working job template override from repo registry or `.robo` file
 * Job template that builds all `Dockerfiles`
-* Local private docker registry for intermediate steps and local testing of build pipelines
+* Local private docker registry and git server for intermediate steps and local testing of build pipelines
+* Repo management including version git tagging and build once releases
+
+
+## Local Environment
+You can get a local environment of robo-jenkins up and running pretty easily with docker compose:
+```
+docker-compose build
+docker-compose up
+```
+Don't forget to properly bring down the environment in between builds:
+```
+docker-compose down -v
+```
+The `-v` is important as it will delete the jenkins home volume, ensuring your start fresh the next time.
+
+The local environment includes a robo-jenkins master, a docker registry, and a git server... everything you need for testing.  You probably should set `ROBO_NO_REPO_MANAGEMENT` to `true` if you are testing with "real" repos, you don't want to push up or blow out robo tags from your local test environment. Unless you want to.
+
+### Local private registry
+A local private docker regsitry is provided by the registry service.  It is configured to listen on localhost:5000 on the docker host that is running the compose file.  To push an image to the local private registry, you must tag it with localhost:5000/${image name}:{image tag}.  For example:
+```
+docker build -t localhost:5000/app_name:master
+docker push localhost:5000/app_name:master
+```
+
+### Dind alternative
+The default docker-compose.yml does docker builds using the same docker daemon that is running Jenkins.  There is an alternative compose file, docker-compose.dind.yml, that instead uses docker dind.  You can use it instead by passing `-f docker-compose.dind.yml` to all docker compose commands.
+Example:
+```
+docker-compose -f docker-compose.dind.yml build
+docker-compose -f docker-compose.dind.yml up
+```
+
+By default, this will use a docker daemon with the VFS storage driver.  This works everywhere, but is very slow.  It is recommended to set the storage driver to overlay or overlay2 for more performant builds.  You can do this by setting the command key docker-compose.dind.yml to `--storage-driver=overlay` or `--storage-driver=overlay2`.  However, this requires that the docker daemon that is running the dind container have the same storage driver set.  This is non trivial on docker for Mac, but can be done as in http://stackoverflow.com/questions/39455764/change-storage-driver-for-docker-on-os-x
+
 
 ## Repo Registry
 The repo registry is an abstract concept, in it's simplest form it is just a list of github repositories you want robo-jenkins to consider for build jobs. Support for non-github repos such as local repos are coming soon.
@@ -33,23 +69,44 @@ repos:
   - url: https://github.com/docker-library/ghost
 ```
 
+
 ## Robo file
 The `.robo` file is a special file that contains some configuration to help robo-jenkins make certain decisions. It lives at the root of the repo and can be different in every branch. Right now it doesn't do too much, but you can use it to override the job template target for your branch. Check out the [overrides](#overrides) section below for more information.
 
+
 ## Job Template
-Job templates are used by the brancher jobs to spawn the actual build jobs that build things. They should be written in accordance with the Jenkins [`job-dsl-plugin`](https://github.com/jenkinsci/job-dsl-plugin/wiki) and dropped into the `ROBO_JOB_TEMPLATES` (`/usr/share/jenkins/userContent/job_templates/`) directory. The code will be evaluated _almost_ as if it was part of the brancher job that is executing it. All methods of the jobs dsl [api](https://jenkinsci.github.io/job-dsl-plugin) should work barring any dsl specific to a particular Jenkins plugin that has not been installed. All templates in this directory will be considered when a brancher job runs. An example of this may look like:
+Job templates are used by the brancher jobs to spawn the actual build jobs that build things.  A job template is just directory of some scripts, each serves a purpose. Currently only two are supported:
+* `job.groovy` - the jobs dsl code used to spawn the build job
+* `get-version.groovy` - a script that is evaluated at the beginning of the build that returns the version number of this commit
+
+The file structure for a job template called `example` might look like:
 ```
-// job template for most useful jenkins job ever
-job("$job_name") {
-    println "Creating most useful jenkins job ever job: $job_name"
-    scm {
-        git(repo, branch)
-    }
+robo-jenkins/usr/share/jenkins/userContent/job_templates/example/
+├── get-version.groovy
+└── job.groovy
+```
+
+Example of `get-version.groovy`:
+```
+// read a version file from the root of the repo
+def ver_file = new File("$WORKSPACE/version.txt")
+return ver_file.exists() ? ver_file.text.trim() : null
+```
+
+Example of a `job.groovy`:
+```
+// example build job
+job.with {
+    // todo - more stuff
     steps {
         shell('echo I don't do very much')
     }
 }
 ```
+
+Job templates get a few things by default. The job itself is precooked by the brancher and passed via the `job` parameter. This conveniently sets the scm for the repo and the job name, so it isn't needed in the template. Also, if the repo is managed, the brancher cooks in what is needed for pushing tags, checking releases, etc.
+
+The `job.groovy` script should be written in accordance with the Jenkins [`job-dsl-plugin`](https://github.com/jenkinsci/job-dsl-plugin/wiki) and dropped into the `ROBO_JOB_TEMPLATES` (`/usr/share/jenkins/userContent/job_templates/`) directory. The code will be evaluated _almost_ as if it was part of the brancher job. All methods of the jobs dsl [api](https://jenkinsci.github.io/job-dsl-plugin) should work barring any dsl specific to a particular Jenkins plugin that has not been installed. All templates in this directory will be considered when a brancher job runs, the directory name is used as the template name.
 
 ### External Job Template Repo
 Robo-jenkins supports the use of external job templates by way of git. By default, robo-jenkins will ship with a few ultra generic job templates, but in must situations a Jenkins administration would rather user their own. This is easily done by setting the `ROBO_JOB_TEMPLATE_REPO` environment var to the git url of your external job template repo. Robo-jenkins will ingest all the templates at the master branch of this repo **after** it ingests the built in templates. This is an important point, as it allows you to override the built in templates with your own, so long as they are of the same name.
@@ -79,7 +136,7 @@ The seed job is the first Jenkins job to be created and is responsible for spark
 * on repo registry changes _(not implemented)_
 
 ## Brancher Job
-The brancher jobs are created by the seed job, and are responsible for processing all the branches in it's repo. It will iterate through each branch, determine what job template to use, and create the resulting build job. Determining the job template _(not implemented)_ will eventually happen one of three ways: From the the repo registry, from the `.robo` file at the root of the repo, or by auto discovery. The brancher is to uphold the brancher contract with the job templates.
+The brancher jobs are created by the seed job, and are responsible for processing all the branches in it's repo. It will iterate through each branch, determine what job template to use, and create the resulting build job. Determining the job template can happen one of three ways: From the the repo registry, from the `.robo` file at the root of the repo, or by auto discovery _(not implemented)_. The brancher is to uphold the brancher contract with the job templates.
 
 ### Triggers
 * on external job template repo _(not implemented)_ changes via git hook
@@ -89,40 +146,35 @@ The brancher jobs are created by the seed job, and are responsible for processin
 ### Brancher Contract
 * The brancher job is responsible for executing a job template's code for each branch in a given repo
 * The brancher job is responsible for determining the correct job template to use for each branch
-  * via the repo registry _(not implemented)_
-  * via the `.robo` file _(not implemented)_
+  * via the repo registry
+  * via the `.robo` file
   * via auto discovery _(not implemented)_
-* Job templates are responsible for creating the "real" build jobs, including the scm, build steps, publishers, etc.
-* Job templates may provide a boolean returnable groovy method called `auto_discover`, which will by executed by the brancher at the root of the workspace to determine if said template is for said code _(not implemented)_
-* Job templates will have access to all variables in the brancher job's binding
- * `parent_folder` - The Jenkins folder that associated with this repo 
- * `repo` (i.e `${GIT_URL}` variable) - The repo url
- * `branch` - The branch associated with this build job
- * `sha` - The sha of the branch associated with this build job
- * `job_name` - The full job name that is to be used to make the build job, include the parent directory
+* Job templates are responsible for creating the "real" build jobs, including the build steps, publishers, etc.
+* Job templates may provide a `get-version.groovy` script which should return a version number if ran at the root of the repo
+* The following variables are injected into the build job:
+  * `ROBO_FILE_MAP`
+  * `IS_SEMVER`
+  * `IS_RELEASE`
+  * `IS_SNAPSHOT`
+  * `VERSION`
+  * `IS_REPO_MANAGED`
+  * `MY_REPO_REGISTRY_ENTRY`
+  * `ROBO_DEFAULT_JOB`
+  * `ROBO_REPO_REGISTRY`
+  * `ROBO_NO_REPO_MANAGEMENT`
+  * `ROBO_JOB_TEMPLATES`
+  * `ROBO_JOB_TEMPLATE_REPO`
+
+
+## Repo Management
+Repos can be managed by robo-jenkins. If robo-jenkins has push access to the repo, it will git tag every build with the version number and only build release versions once. It follows the rules of [semantic versioning](http://semver.org/) in order to make those determinations. You can turn repo management off by setting the environment variable `ROBO_NO_REPO_MANAGEMENT` to `true`. Good practice for local testing.
+
 
 ## Configuration and Secrets
 Most configuration for robo-jenkins is done using environment variables.  While
 these can be added directly to the environment key of a docker compose file, this is not appropriate for secrets or other developer specific configuration.
 
 Instead, these types of variables should be added to `testing/data/developer.env`.  This is a standard docker-compose env file that is sourced by this project's compose files.  This file is mandatory.  An example developer.env that contains all possible variables is provided at `testing/data/developer.env.template`.  Before using this project to build projects that require private resources, you must set whatever variables are required to perform your builds in developer.env.  This will generally at least be the `GIT_HTTPS_USER`, `GIT_HTTPS_PW`, and `GIT_HOST` variables for builds requiring private git repositories and the REGISTRY_USER, REGISTRY_PW, and REGISTRY_HOST variables for build requiring private Docker images.  See `testing/data/developer.env.template` for more information.
-
-## Local private registry
-A local private docker regsitry is provided by the registry service.  It is configured to listen on localhost:5000 on the docker host that is running the compose file.  To push an image to the local private registry, you must tag it with localhost:5000/${image name}:{image tag}.  For example:
-```
-docker build -t localhost:5000/app_name:master
-docker push localhost:5000/app_name:master
-```
-
-## Dind alternative
-The default docker-compose.yml does docker builds using the same docker daemon that is running Jenkins.  There is an alternative compose file, docker-compose.dind.yml, that instead uses docker dind.  You can use it instead by passing `-f docker-compose.dind.yml` to all docker compose commands.
-Example:
-```
-docker-compose -f docker-compose.dind.yml build
-docker-compose -f docker-compose.dind.yml up
-```
-
-By default, this will use a docker daemon with the VFS storage driver.  This works everywhere, but is very slow.  It is recommended to set the storage driver to overlay or overlay2 for more performant builds.  You can do this by setting the command key docker-compose.dind.yml to `--storage-driver=overlay` or `--storage-driver=overlay2`.  However, this requires that the docker daemon that is running the dind container have the same storage driver set.  This is non trivial on docker for Mac, but can be done as in http://stackoverflow.com/questions/39455764/change-storage-driver-for-docker-on-os-x
 
 
 ## Issues
@@ -131,15 +183,19 @@ By default, this will use a docker daemon with the VFS storage driver.  This wor
 * ~~No overrides or other types of build jobs~~
 * Just basic docker job template for now
 
+
 ## What's Next?
 * ~~A "repo registry" and the ability to register repos through a docker volume~~
 * ~~Proper templated, dynamic, build job pipelines~~ _sorta done, need more templates_
 * ~~Override target job template~~
 * Auto discover target job template
 * More jobs templates
+* Org scrapper
+
 
 ## Where is this going?
 Robo-jenkins will be a CI/CD platform with as little Jenkins Koolaid as possible.  Born from the pain of maintaining a Jenkins environment, with hundreds of build job types, and plugins, and conflicting requirements... robo-jenkins leverages docker to abstract out and distribute complexity from Jenkins to other places.  Mainly, docker containers which can be crated by anyone, enabling others to partake in the joys of Jenkins administration without actually needing to touch Jenkins.
+
 
 ## Key points
 * All build steps will be distilled into docker runs, builds, and pushes (expect for meta-jobs)
@@ -155,6 +211,7 @@ Robo-jenkins will be a CI/CD platform with as little Jenkins Koolaid as possible
 * Autodiscover all the things
 * Default all the things
 * Override only the things you need to
+
 
 ## Maybe one day
 * No groovy necessary!

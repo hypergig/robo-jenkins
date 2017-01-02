@@ -12,9 +12,11 @@ services:
       #GIT_COMMITTER_EMAIL:
       #JENKINS_EXECUTERS:
       #JENKINS_URL:
+      #ROBO_REPO_REGISTRY:
+      #ROBO_JOB_TEMPLATES:
       #ROBO_DEFAULT_JOB:
       #ROBO_JOB_TEMPLATE_REPO:
-      # Default quite period is 5
+      #ROBO_NO_REPO_MANAGEMENT: 'true'
       #JENKINS_QUIET_PERIOD: 0
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
@@ -28,3 +30,5 @@ services:
 
   git_server:
     build: "./testing/support/git_server/."
+    ports:
+      - "9418:9418"

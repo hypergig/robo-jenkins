@@ -17,7 +17,10 @@ node {
         dir("userContent") { git "http://localhost:8080/userContent.git" }
 
         // checkout repo source code
-        dir("repo") { git "${my_repo_registry_entry.url}" }
+        dir("repo") {
+            git url: "${my_repo_registry_entry.url}"
+            sh 'git remote prune origin'
+        }
     }
     stage('build brancher jobs') {
         jobDsl (

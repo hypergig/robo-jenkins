@@ -2,6 +2,7 @@
 import org.yaml.snakeyaml.Yaml
 import robo.RoboUtil
 
+
 // the git userContent repo needs to be exercised to force it to startup
 // or else most of the brancers jobs will fail their first time running
 if ("${BUILD_NUMBER}" == "1") {
@@ -10,9 +11,10 @@ if ("${BUILD_NUMBER}" == "1") {
         'git ls-remote -ht http://localhost:8080/userContent.git')[0]
 }
 
+
 // ingest repo registry
 def repo_registry = []
-println 'Ingesting repo registry'
+println RoboUtil.header('Ingest repo registry')
 new File("${WORKSPACE}/repo_registry/").eachFileMatch(~/.*\.yml$/) {
     def repo_yml_path = it.toString()
     println "Adding repo yaml: $repo_yml_path"
@@ -33,10 +35,14 @@ repo_registry.unique { a, b -> a.url <=> b.url }
 println 'The current repo registry is:'
 println new Yaml().dumpAsMap(repo_registry)
 
+
+// process all repos
+println RoboUtil.header('Create brancher for each repo')
+
 // make branchers folder
 folder('branchers') { description("Folder to hold all brancher jos") }
 
-// process each repo
+// for each repo
 repo_registry.each {
     def my_repo_registry_entry = it
     def repo = my_repo_registry_entry.url
@@ -54,7 +60,7 @@ repo_registry.each {
         definition {
             cps {
                 script(readFileFromWorkspace(
-                    'meta_jobs/seed/brancher_workflow.groovy'))
+                    'meta_jobs/seed/brancher-workflow.groovy'))
             }
         }
     }
