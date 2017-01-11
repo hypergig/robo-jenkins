@@ -26,7 +26,10 @@ node {
         jobDsl (
             removedJobAction: 'DELETE',
             targets: 'userContent/meta_jobs/brancher/brancher.groovy',
-            additionalClasspath: 'userContent/meta_jobs/libs/**',
+            additionalClasspath: '''
+                userContent/meta_jobs/libs
+                userContent/meta_jobs/libs/*.jar
+                ''',
             failOnMissingPlugin: true,
             unstableOnDeprecation: true
         )

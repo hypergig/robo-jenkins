@@ -31,7 +31,10 @@
       <removedJobAction>DELETE</removedJobAction>
       <removedViewAction>IGNORE</removedViewAction>
       <lookupStrategy>JENKINS_ROOT</lookupStrategy>
-      <additionalClasspath>meta_jobs/libs/**</additionalClasspath>
+      <additionalClasspath>
+        meta_jobs/libs
+        meta_jobs/libs/*.jar
+      </additionalClasspath>
     </javaposse.jobdsl.plugin.ExecuteDslScripts>
   </builders>
   <publishers/>
